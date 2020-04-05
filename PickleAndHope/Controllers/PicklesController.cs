@@ -34,5 +34,22 @@ namespace PickleAndHope.Controllers
             }
             
         }
+
+        [HttpGet]
+        public IActionResult GetAllPickles()
+        {
+            var allPickles = _repository.GetAll();
+            return Ok(allPickles);
+        }
+
+        // api/pickles/{id}
+        [HttpGet("{id}")]
+        public IActionResult GetPickleById(int id)
+        {
+           var pickle = _repository.GetById(id);
+           if (pickle == null) return NotFound("No pickle with that id could be found.");
+           return Ok(pickle);
+        }
+        
     }
 }
