@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace PickleAndHope.Models
 {
-    //POST api/orders/
-    //PUT api/orders/{id}/items
+    // POST api/orders/
+    // PUT api/orders/{id}/items
+
     public class Order
     {
         public int Id { get; set; }
