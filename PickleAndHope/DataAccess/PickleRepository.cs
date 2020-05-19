@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using PickleAndHope.Models;
 using Dapper;
+using Microsoft.Extensions.Configuration;
 
 namespace PickleAndHope.DataAccess
 {
     public class PickleRepository
     {
-        const string ConnectionString = "Server=localhost;Database=PickleAndHope;Trusted_Connection=True;";
+        string ConnectionString;
+
+        public PickleRepository(IConfiguration config)
+        {
+            ConnectionString = config.GetConnectionString("PickleAndHope");
+            //Connection = config
+        }
 
         public Pickle Add(Pickle pickle)
         {
@@ -20,8 +28,28 @@ namespace PickleAndHope.DataAccess
 
             using (var db = new SqlConnection(ConnectionString))
             {
+                // Dapper
                 var result = db.QueryFirstOrDefault<Pickle>(sql, pickle);
                 return result;
+
+                //ADO
+                //db.Open();
+                //var cmd = db.CreateCommand();
+                //cmd.CommandText = sql;
+
+                //cmd.Parameters.AddWithValue("NumberInStock", pickle.NumberInStock);
+                //cmd.Parameters.AddWithValue("Price", pickle.Price);
+                //cmd.Parameters.AddWithValue("Size", pickle.Size);
+                //cmd.Parameters.AddWithValue("Type", pickle.Type);
+
+                //var reader = cmd.ExecuteReader();
+
+                //if(reader.Read())
+                //{
+                //    var newPickle = MapReaderToPickle(reader);
+                //    return newPickle;
+                //}
+                //return null;
             }
         }
 
@@ -39,6 +67,7 @@ namespace PickleAndHope.DataAccess
 
             using (var db = new SqlConnection(ConnectionString))
             {
+                // Dapper
                 var parameters = new
                 {
                     NewStock = pickle.NumberInStock,
@@ -46,6 +75,24 @@ namespace PickleAndHope.DataAccess
                 };
 
                 return db.QueryFirstOrDefault<Pickle>(sql, parameters);
+
+                // ADO
+                //db.Open();
+
+                //var cmd = db.CreateCommand();
+                //cmd.CommandText = sql;
+
+                //cmd.Parameters.AddWithValue("NewStock", pickle.NumberInStock);
+                //cmd.Parameters.AddWithValue("Id", pickle.Id);
+
+                //var reader = cmd.ExecuteReader();
+
+                //if(reader.Read())
+                //{
+                //    var updatedPickle = MapReaderToPickle(reader);
+                //    return updatedPickle;
+                //}
+                //return null;
             }
 
 
@@ -81,8 +128,7 @@ namespace PickleAndHope.DataAccess
         {
             var query = @"select *
                           from Pickle
-                          where id = @id
-                                numberinstock = @numberInStock";
+                          where id = @id";
 
             using (var db = new SqlConnection(ConnectionString))
             {

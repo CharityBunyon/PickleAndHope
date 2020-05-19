@@ -14,8 +14,12 @@ namespace PickleAndHope.Controllers
     [ApiController]
     public class PicklesController : ControllerBase
     {
-        PickleRepository _repository = new PickleRepository();
+        PickleRepository _repository;
 
+        public PicklesController(PickleRepository repository)
+        {
+            _repository = _repository;
+        }
         // api/pickles
         [HttpPost]
         public IActionResult AddPickle(Pickle pickleToAdd)
