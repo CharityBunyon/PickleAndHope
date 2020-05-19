@@ -2,28 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Data.SqlClient;
 using PickleAndHope.Models;
-
+using Dapper;
 
 namespace PickleAndHope.DataAccess
 {
-    
     public class PickleRepository
     {
-        static List<Pickle> _pickles = new List<Pickle>
+        const string ConnectionString = "Server=localhost;Database=PickleAndHope;Trusted_Connection=True;";
+
+        public Pickle Add(Pickle pickle)
         {
-            new Pickle
+            var sql = @"insert into Pickle(NumberInStock,Price,Size,Type)
+                        output inserted.*
+                        values(@NumberInStock,@Price,@Size,@Type)";
+
+            using (var db = new SqlConnection(ConnectionString))
             {
-                Type = "Bread and Butter", 
-                NumberInStock = 5,
-                Id = 1
+                var result = db.QueryFirstOrDefault<Pickle>(sql, pickle);
+                return result;
             }
-        };
-        public void Add(Pickle pickle)
-        {
-            pickle.Id = _pickles.Max(x => x.Id) + 1;
-            _pickles.Add(pickle);
         }
 
         public void Remove(string type)
@@ -33,24 +32,65 @@ namespace PickleAndHope.DataAccess
 
         public Pickle Update(Pickle pickle)
         {
-            var pickleToUpdate = GetByType(pickle.Type);
-            pickleToUpdate.NumberInStock += pickle.NumberInStock;
-            return pickleToUpdate;
+            var sql = @"update Pickle
+                        set NumberInStock = NumberInStock + @NewStock
+                        output inserted.*
+                        where Id = @Id";
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var parameters = new
+                {
+                    NewStock = pickle.NumberInStock,
+                    Id = pickle.Id
+                };
+
+                return db.QueryFirstOrDefault<Pickle>(sql, parameters);
+            }
+
+
         }
 
-        public Pickle GetByType(string type)
+        public Pickle GetByType(string typeOfPickle)
         {
-            return _pickles.FirstOrDefault(p => p.Type == type);
+            var query = @"select *
+                          from Pickle
+                          where Type = @Type";
+
+            //Sql Connection
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var parameters = new { Type = typeOfPickle };
+
+                var pickle = db.QueryFirstOrDefault<Pickle>(query, parameters);
+
+                return pickle;
+            }
+
         }
 
-        public List<Pickle> GetAll()
+        public IEnumerable<Pickle> GetAll()
         {
-            return _pickles;
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                return db.Query<Pickle>("select * from pickle");
+            }
         }
 
         public Pickle GetById(int id)
         {
-            return _pickles.FirstOrDefault(pickle => pickle.Id == id);
+            var query = @"select *
+                          from Pickle
+                          where id = @id
+                                numberinstock = @numberInStock";
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var parameters = new { Id = id };
+
+                var pickle = db.QueryFirstOrDefault<Pickle>(query, parameters);
+                return pickle;
+            }
         }
     }
 }
